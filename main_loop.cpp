@@ -7,5 +7,6 @@ controller_test::controller_test() {
 
         InitWindow(1280, 720, "Controller Test");
         InitAudioDevice();
+        DisableCursor();
         vine_boom = LoadSound("sound.ogg");
 }

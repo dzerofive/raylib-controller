@@ -1,32 +1,31 @@
 #include "main_loop.hpp"
+#include "raymath_operators.hpp"
 #include <raylib.h>
 
 #include <iostream> 
 #include <cmath>
 
+inline Vector2 rotate(const Vector2& vec, const float degrees) {
+        Vector2 res;
+        res.x = vec.x*std::cos(degrees) - vec.y*std::sin(degrees);
+        res.y = vec.x*std::sin(degrees) + vec.y*std::cos(degrees);
+        return res;
+}
+
 void controller_test::input_loop() {
-        Vector2 input_look{0.f, 0.f};
-        Vector3 movement_direction{0.f, 0.f, 0.f};
-
-        m_input_direction.x = -GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y);
-        m_input_direction.y = -GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X);
-
-        // Gamepad Camera
-        input_look.x += GetGamepadAxisMovement(0, GAMEPAD_AXIS_RIGHT_X)*10;
-        input_look.y += GetGamepadAxisMovement(0, GAMEPAD_AXIS_RIGHT_Y)*10;
         // Mouse Camera
-        input_look.x += GetMouseX() - m_mouse_position_past.x;
+        Vector2 input_look{0.f, 0.f};
+        input_look.x -= GetMouseX() - m_mouse_position_past.x;
         input_look.y += GetMouseY() - m_mouse_position_past.y;
-
-        m_forward_vector.x = m_camera_target.x*std::cos(m_look_sensitivity*-input_look.x) - m_camera_target.y*std::sin(m_look_sensitivity*-input_look.x);
-        m_forward_vector.y = m_camera_target.x*std::sin(m_look_sensitivity*-input_look.x) + m_camera_target.y*std::cos(m_look_sensitivity*-input_look.x);
-        m_camera_target.x = m_forward_vector.x;
-        m_camera_target.y = m_forward_vector.y;
-
+        m_rotation_angle.x += input_look.x*m_look_sensitivity;
         // Update mouse offset for the next frame
         m_mouse_position_past.x = GetMouseX();
         m_mouse_position_past.y = GetMouseY();
 
+        m_forward_vector = rotate(Vector2{0.f, 1.f}, m_rotation_angle.x);
+
+        // Process and normalize
+        m_input_direction = Vector2{};
         if(IsKeyDown(KEY_W)) m_input_direction = m_input_direction + m_forward_vector;
         if(IsKeyDown(KEY_S)) m_input_direction = m_input_direction + Vector2{-m_forward_vector.x, -m_forward_vector.y};
         if(IsKeyDown(KEY_A)) m_input_direction = m_input_direction + Vector2{-m_forward_vector.y, m_forward_vector.x};
@@ -34,15 +33,15 @@ void controller_test::input_loop() {
         m_input_direction = Vector2Normalize(m_input_direction);
 
         // Apply movement
+        Vector3 movement_direction{0.f, 0.f, 0.f};
         movement_direction.x = m_input_direction.x*GetFrameTime()*m_movement_speed;
         movement_direction.y = m_input_direction.y*GetFrameTime()*m_movement_speed;
         m_position = m_position+movement_direction;
-        // Camera location
-        m_camera.target = m_position+m_camera_target;
-        m_camera.target.z += m_camera_height;
-        // Camera position
-        m_camera.position = m_position+m_camera_offset;
-        m_camera.position.z += m_camera_height;
+
+        // Apply camera
+        m_camera.target = m_position;
+        Vector2 rotated_base = rotate(Vector2{m_camera_offset.x, m_camera_offset.y}, m_rotation_angle.x);
+        m_camera.position = Vector3{rotated_base.x, rotated_base.y, m_camera_offset.z}+m_position;
 
         if(IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN)) {
                 PlaySound(vine_boom);
