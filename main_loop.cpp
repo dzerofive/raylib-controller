@@ -8,5 +8,8 @@ controller_test::controller_test() {
         InitWindow(1280, 720, "Controller Test");
         InitAudioDevice();
         DisableCursor();
-        vine_boom = LoadSound("sound.ogg");
+        vine_boom = LoadSound("sounds/sound.ogg");
+        murasame = LoadModel("models/murasame.glb");
+        murasame_ao = LoadTexture("textures/murasame_ao.png");
+        murasame.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = murasame_ao;
 }

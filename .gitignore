@@ -1,2 +1,6 @@
+models/
+sounds/
+textures/
+animations/
 controller_test
-sound.ogg
+controller_text.exe

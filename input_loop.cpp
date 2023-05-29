@@ -13,6 +13,22 @@ inline Vector2 rotate(const Vector2& vec, const float degrees) {
 }
 
 void controller_test::input_loop() {
+        if(IsKeyDown(KEY_UP)) m_camera_offset.y += 0.2;
+        if(IsKeyDown(KEY_DOWN)) m_camera_offset.y -= 0.2;
+        if(IsKeyDown(KEY_RIGHT)) {
+                m_target_offset.z += 0.1;
+                m_camera_offset.z += 0.1;
+        }
+        if(IsKeyDown(KEY_LEFT)) {
+                m_target_offset.z = Clamp(m_target_offset.z-0.1f, -1.5f, 99999999.f);
+                m_camera_offset.z = Clamp(m_camera_offset.z-0.1f, 0.5f, 99999999.f);
+        }
+
+        if(IsKeyDown(KEY_G)) {
+                m_animation_frame = 0;
+                m_animation_state = animation_states::walk;
+        }
+
         // Mouse Camera
         Vector2 input_look{0.f, 0.f};
         input_look.x -= GetMouseX() - m_mouse_position_past.x;
@@ -39,7 +55,7 @@ void controller_test::input_loop() {
         m_position = m_position+movement_direction;
 
         // Apply camera
-        m_camera.target = m_position;
+        m_camera.target = m_position+m_target_offset;
         Vector2 rotated_base = rotate(Vector2{m_camera_offset.x, m_camera_offset.y}, m_rotation_angle.x);
         m_camera.position = Vector3{rotated_base.x, rotated_base.y, m_camera_offset.z}+m_position;
 
